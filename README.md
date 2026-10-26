@@ -46,6 +46,7 @@ Projektin käyttöliittymän suunnittelussa hyödynnetään tilaajan toimittamia
 - Asiakas voi kirjautua sisään näkeäkseen lipunmyynnin, tapahtumaluettelon ja myyntitapahtumansa.
 - Tapahtuman järjestäjä voi kirjautua näkeäkseen myyntiraportin ja tapahtumanhallinnan.
 - Lipunmyyjä hallitsee järjestelmää, näkee myyntiraportin, tapahtumien hallinnan sekä voi luoda uuden tapahtuman.
+- Lippujen tarkastuksen esimerkkiclient löytyy osoitteesta `/lipuntarkastus.html`. Kirjaudu sivulla myyjän tunnuksella, hae lippu koodilla ja merkitse varattu lippu käytetyksi. Client käyttää suoraan `/api/liput/koodi/{koodi}`- ja `/api/liput/lunasta`-rajapintoja; tunnuksia ei tallenneta selaimeen.
 ![Käyttöliittymän kuvaus](/docs/kayttoLiittyma.png)
 
 ## Tietokanta

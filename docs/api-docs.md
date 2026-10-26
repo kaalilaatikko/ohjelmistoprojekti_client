@@ -496,6 +496,30 @@ omistajaksi asetetaan lippuvarauksen tehnyt myyjä.
     * `404 NOT FOUND` (Jos koodia ei löydy)
     * `409 CONFLICT` (Jos lippu on jo lunastettu tai peruttu)
 
+### Hae lippu koodilla
+
+* **Käyttöoikeudet**: Myyjä
+* **Metodi**: `GET`
+* **Polku**: `/liput/koodi/{koodi}`
+* **Vastaus**:
+    * `200 OK` (Lipun tiedot, myös lunastettujen ja peruttujen lippujen tila)
+    * `401 UNAUTHORIZED` (Tunnistautuminen puuttuu tai epäonnistuu)
+    * `403 FORBIDDEN` (Käyttäjällä ei ole myyjän käyttöoikeutta)
+    * `404 NOT FOUND` (Koodia ei löydy)
+* **Vastauksen runko**:
+
+```json
+{
+  "lippuId": 1,
+  "tapahtumaId": 1,
+  "lipputyyppiId": 1,
+  "myyntitapahtumaId": 1,
+  "koodi": "ABCDEF-123456",
+  "hinta": 15.00,
+  "status": "VARATTU"
+}
+```
+
 ### Peruuta varaus
 
 * **Käyttöoikeudet**: Myyjä
