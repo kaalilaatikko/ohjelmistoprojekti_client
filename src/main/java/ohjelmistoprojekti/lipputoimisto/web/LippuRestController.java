@@ -10,9 +10,13 @@ import ohjelmistoprojekti.lipputoimisto.service.LippuService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import ohjelmistoprojekti.lipputoimisto.dto.LippuVastausDto;
 
 @RestController
 @RequestMapping("/api/liput")
@@ -26,6 +30,12 @@ public class LippuRestController {
             TapahtumaRepository tapahtumaRepository, LippuService lippuService) {
 
         this.lippuService = lippuService;
+    }
+
+    @PreAuthorize("hasRole('MYYJA')")
+    @GetMapping("/koodi/{koodi}")
+    public ResponseEntity<LippuVastausDto> haeLippuKoodilla(@PathVariable String koodi) {
+        return lippuService.haeLippuTiedoilla(koodi);
     }
 
     @PreAuthorize("hasRole('MYYJA')")

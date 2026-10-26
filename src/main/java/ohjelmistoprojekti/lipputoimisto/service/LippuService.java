@@ -148,6 +148,16 @@ public class LippuService {
         return lippu;
     }
 
+    public ResponseEntity<LippuVastausDto> haeLippuTiedoilla(String koodi) {
+        if (koodi == null || koodi.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return lippuRepository.findByKoodi(koodi)
+                .map(lippu -> ResponseEntity.ok(new LippuVastausDto(lippu)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     public ResponseEntity<?> lunastaLippu(LippuLunastus pyynto) {
         Lippu lippu = haeLippu(pyynto.getKoodi());
         Lippu.LippuTila status = lippu.getLipunStatus();

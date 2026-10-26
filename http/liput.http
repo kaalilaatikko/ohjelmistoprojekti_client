@@ -2,6 +2,10 @@
 @jarjestajaToken = amFyamVzdGFqYTpwYXNzd29yZA==
 @adminToken = YWRtaW46cGFzc3dvcmQ=
 
+### Hae lipun tiedot koodilla
+GET http://localhost:8080/api/liput/koodi/ABCDEF-123456
+Authorization: Basic {{myyjaToken}}
+
 ## Varaa lippuja onnistuneesti
 POST http://localhost:8080/api/liput/varaa
 Content-Type: application/json

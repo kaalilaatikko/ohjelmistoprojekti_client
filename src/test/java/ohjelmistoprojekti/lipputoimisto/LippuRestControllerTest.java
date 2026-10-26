@@ -14,6 +14,8 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -36,6 +38,13 @@ public class LippuRestControllerTest {
     private MockMvc mockMvc;
     @Autowired
     private LippuRepository lippuRepository;
+
+    @Test
+    void ticketInspectionClientIsPubliclyServed() throws Exception {
+        mockMvc.perform(get("/lipuntarkastus.html"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("/api/liput/koodi/")));
+    }
 
     @Test
     void reserveTicketReturnsCreated() throws Exception {
@@ -256,6 +265,46 @@ public class LippuRestControllerTest {
                                 }
                                 """))
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void findTicketByCodeReturnsTicketDetailsIncludingNonReservedStatus() throws Exception {
+        mockMvc.perform(get(BASE_URL + "/koodi/{koodi}", "ABCDEF-123456")
+                        .with(MYYJA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.koodi").value("ABCDEF-123456"))
+                .andExpect(jsonPath("$.status").value("VARATTU"))
+                .andExpect(jsonPath("$.hinta").value(15.0))
+                .andExpect(jsonPath("$.tapahtumaId").value(1))
+                .andExpect(jsonPath("$.lipputyyppiId").value(1))
+                .andExpect(jsonPath("$.myyntitapahtumaId").value(1));
+
+        mockMvc.perform(get(BASE_URL + "/koodi/{koodi}", "FEDCBA-654321")
+                        .with(MYYJA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("LUNASTETTU"));
+
+        mockMvc.perform(get(BASE_URL + "/koodi/{koodi}", "AABBCC-112233")
+                        .with(MYYJA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("PERUTTU"));
+    }
+
+    @Test
+    void findTicketByCodeReturnsNotFoundForUnknownCode() throws Exception {
+        mockMvc.perform(get(BASE_URL + "/koodi/{koodi}", "AAAAAA-111111")
+                        .with(MYYJA))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void findTicketByCodeRequiresSellerRole() throws Exception {
+        mockMvc.perform(get(BASE_URL + "/koodi/{koodi}", "ABCDEF-123456"))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(get(BASE_URL + "/koodi/{koodi}", "ABCDEF-123456")
+                        .with(JARJESTAJA))
+                .andExpect(status().isForbidden());
     }
 
     @Test

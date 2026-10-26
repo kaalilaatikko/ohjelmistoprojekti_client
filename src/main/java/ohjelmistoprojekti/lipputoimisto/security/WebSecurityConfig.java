@@ -31,6 +31,7 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/css/**").permitAll()
+                        .requestMatchers("/lipuntarkastus.html").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/myyntitapahtumat/minun").hasRole("MYYJA")
                         .requestMatchers(HttpMethod.GET, "/api/myyntitapahtumat/myyja/**").hasRole("ADMIN")

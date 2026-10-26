@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="fi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lipun tarkastus</title>
+    <style>
+        :root {
+            font-family: system-ui, sans-serif;
+            color: #172033;
+            background: #f3f5f8;
+        }
+
+        body {
+            margin: 0;
+            padding: 2rem 1rem;
+        }
+
+        main {
+            width: min(100%, 540px);
+            margin: 0 auto;
+            padding: 1.5rem;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 4px 18px #17203318;
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        form {
+            display: grid;
+            gap: 0.8rem;
+        }
+
+        label {
+            font-weight: 650;
+        }
+
+        input {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 0.65rem;
+            border: 1px solid #b8c0cc;
+            border-radius: 6px;
+            font: inherit;
+        }
+
+        button {
+            padding: 0.7rem 1rem;
+            border: 0;
+            border-radius: 6px;
+            color: white;
+            background: #245c43;
+            font: inherit;
+            font-weight: 650;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+        }
+
+        #message {
+            min-height: 1.5em;
+            margin: 1rem 0;
+        }
+
+        #message[data-kind="error"] {
+            color: #a32121;
+        }
+
+        #message[data-kind="success"] {
+            color: #17633d;
+        }
+
+        #ticket {
+            margin-top: 1rem;
+            padding: 1rem;
+            border: 1px solid #d9dfe8;
+            border-radius: 8px;
+        }
+
+        #ticket h2 {
+            margin-top: 0;
+        }
+
+        #ticket dl {
+            display: grid;
+            grid-template-columns: max-content 1fr;
+            gap: 0.55rem 1rem;
+        }
+
+        #ticket dt {
+            font-weight: 650;
+        }
+
+        #ticket dd {
+            margin: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .hint {
+            color: #566174;
+            font-size: 0.92rem;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Lipun tarkastus</h1>
+    <p>Hae lippu koodilla. Käytä myyjän tunnusta.</p>
+    <form id="lookup-form">
+        <label for="username">Käyttäjätunnus</label>
+        <input id="username" name="username" autocomplete="username" required>
+
+        <label for="password">Salasana</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+
+        <label for="code">Lippukoodi</label>
+        <input id="code" name="code" placeholder="ABCDEF-123456" autocomplete="off" required>
+
+        <button id="lookup-button" type="submit">Hae lippu</button>
+    </form>
+
+    <p id="message" role="status" aria-live="polite"></p>
+    <section id="ticket" hidden aria-live="polite">
+        <h2>Lipun tiedot</h2>
+        <dl>
+            <dt>Koodi</dt><dd id="ticket-code"></dd>
+            <dt>Tila</dt><dd id="ticket-status"></dd>
+            <dt>Hinta</dt><dd id="ticket-price"></dd>
+            <dt>Lippu-ID</dt><dd id="ticket-id"></dd>
+            <dt>Tapahtuma-ID</dt><dd id="event-id"></dd>
+            <dt>Lipputyyppi-ID</dt><dd id="ticket-type-id"></dd>
+            <dt>Myynti-ID</dt><dd id="sale-id"></dd>
+        </dl>
+        <button id="redeem-button" type="button">Merkitse käytetyksi</button>
+    </section>
+    <p class="hint">Tunnuksia ei tallenneta selaimeen. API vaatii MYYJA-roolin.</p>
+</main>
+<script>
+    const form = document.querySelector("#lookup-form");
+    const message = document.querySelector("#message");
+    const ticketPanel = document.querySelector("#ticket");
+    const lookupButton = document.querySelector("#lookup-button");
+    const redeemButton = document.querySelector("#redeem-button");
+
+    let ticketCode = "";
+    let authorization = "";
+
+    function showMessage(text, kind = "") {
+        message.textContent = text;
+        message.dataset.kind = kind;
+    }
+
+    function basicAuthorization() {
+        const username = document.querySelector("#username").value;
+        const password = document.querySelector("#password").value;
+        const credentials = new TextEncoder().encode(`${username}:${password}`);
+        const binaryCredentials = Array.from(credentials, (byte) => String.fromCharCode(byte)).join("");
+        return `Basic ${btoa(binaryCredentials)}`;
+    }
+
+    function explainError(status) {
+        if (status === 400) return "Lippukoodi puuttuu tai on virheellinen.";
+        if (status === 401) return "Kirjautuminen epäonnistui. Tarkista käyttäjätunnus ja salasana.";
+        if (status === 403) return "Tunnuksella ei ole myyjän käyttöoikeuksia.";
+        if (status === 404) return "Lippua ei löytynyt tällä koodilla.";
+        if (status === 409) return "Lippu on jo käytetty tai peruttu.";
+        return `Palvelin palautti virheen (${status}).`;
+    }
+
+    async function fetchTicket(code) {
+        const response = await fetch(`/api/liput/koodi/${encodeURIComponent(code)}`, {
+            headers: { Authorization: authorization }
+        });
+        if (!response.ok) {
+            throw new Error(explainError(response.status));
+        }
+        return response.json();
+    }
+
+    function renderTicket(ticket) {
+        document.querySelector("#ticket-code").textContent = ticket.koodi;
+        document.querySelector("#ticket-status").textContent = ticket.status;
+        document.querySelector("#ticket-price").textContent = `${ticket.hinta} €`;
+        document.querySelector("#ticket-id").textContent = ticket.lippuId;
+        document.querySelector("#event-id").textContent = ticket.tapahtumaId;
+        document.querySelector("#ticket-type-id").textContent = ticket.lipputyyppiId;
+        document.querySelector("#sale-id").textContent = ticket.myyntitapahtumaId;
+        redeemButton.disabled = ticket.status !== "VARATTU";
+        ticketPanel.hidden = false;
+    }
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        lookupButton.disabled = true;
+        redeemButton.disabled = true;
+        ticketPanel.hidden = true;
+        showMessage("Haetaan lippua...");
+
+        try {
+            authorization = basicAuthorization();
+            ticketCode = document.querySelector("#code").value.trim();
+            const ticket = await fetchTicket(ticketCode);
+            renderTicket(ticket);
+            showMessage("Lippu löytyi.", "success");
+        } catch (error) {
+            showMessage(error instanceof Error ? error.message : "Lipun haku epäonnistui.", "error");
+        } finally {
+            lookupButton.disabled = false;
+        }
+    });
+
+    redeemButton.addEventListener("click", async () => {
+        if (!ticketCode || redeemButton.disabled) return;
+        redeemButton.disabled = true;
+        showMessage("Merkitään lippua käytetyksi...");
+
+        try {
+            const response = await fetch("/api/liput/lunasta", {
+                method: "POST",
+                headers: {
+                    Authorization: authorization,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ koodi: ticketCode })
+            });
+
+            if (!response.ok) {
+                throw new Error(explainError(response.status));
+            }
+
+            const ticket = await fetchTicket(ticketCode);
+            renderTicket(ticket);
+            showMessage("Lippu merkitty käytetyksi.", "success");
+        } catch (error) {
+            showMessage(error instanceof Error ? error.message : "Lipun merkintä epäonnistui.", "error");
+            redeemButton.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>
