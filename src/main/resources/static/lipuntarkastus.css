@@ -1,0 +1,117 @@
+:root {
+    font-family: system-ui, sans-serif;
+    color: #e6ebf4;
+    background: #121a29;
+}
+
+body {
+    margin: 0;
+    padding: 2rem 1rem;
+}
+
+main {
+    width: min(100%, 540px);
+    margin: 0 auto;
+    padding: 1.5rem;
+    border: 1px solid #2a3b56;
+    border-radius: 12px;
+    background: #1b2638;
+    box-shadow: 0 8px 28px #080e18a8;
+}
+
+h1 {
+    margin-top: 0;
+    color: #f4f7fc;
+}
+
+form {
+    display: grid;
+    gap: 0.8rem;
+}
+
+label {
+    font-weight: 650;
+}
+
+input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.65rem;
+    border: 1px solid #43536b;
+    border-radius: 6px;
+    color: #e6ebf4;
+    background: #141e2e;
+    font: inherit;
+}
+
+input:focus {
+    border-color: #5275a8;
+    outline: 2px solid #284977;
+    outline-offset: 1px;
+}
+
+button {
+    padding: 0.7rem 1rem;
+    border: 1px solid #345786;
+    border-radius: 6px;
+    color: #f4f7fc;
+    background: #203d66;
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+    background: #2a4d7b;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+#message {
+    min-height: 1.5em;
+    margin: 1rem 0;
+}
+
+#message[data-kind="error"] {
+    color: #ff9a9a;
+}
+
+#message[data-kind="success"] {
+    color: #8ed7aa;
+}
+
+#ticket {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid #344966;
+    border-radius: 8px;
+    background: #172235;
+}
+
+#ticket h2 {
+    margin-top: 0;
+    color: #d7e5fb;
+}
+
+#ticket dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.55rem 1rem;
+}
+
+#ticket dt {
+    font-weight: 650;
+}
+
+#ticket dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.hint {
+    color: #aab6c8;
+    font-size: 0.92rem;
+}
