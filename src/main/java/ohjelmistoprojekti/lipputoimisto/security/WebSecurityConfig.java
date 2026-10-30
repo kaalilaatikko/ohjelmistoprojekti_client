@@ -32,6 +32,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/css/**").permitAll()
                         .requestMatchers("/lipuntarkastus.html").permitAll()
+                        .requestMatchers("/lipuntarkastus.css").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/myyntitapahtumat/minun").hasRole("MYYJA")
                         .requestMatchers(HttpMethod.GET, "/api/myyntitapahtumat/myyja/**").hasRole("ADMIN")
